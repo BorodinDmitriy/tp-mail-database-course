@@ -1,3 +1,4 @@
+FROM ubuntu:16.04
 MAINTAINER Borodin Dmitriy
 RUN apt-get update -y
 ENV PGVER 9.5
