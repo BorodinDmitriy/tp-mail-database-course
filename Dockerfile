@@ -43,7 +43,7 @@ USER root
 RUN apt-get install -y openjdk-9-jdk-headless
 RUN apt-get install -y maven
 
-ENV WORK /opt/
+ENV WORK /opt/tp-mail-database-course
 ADD / $WORK/
 WORKDIR $WORK
 RUN mvn package
