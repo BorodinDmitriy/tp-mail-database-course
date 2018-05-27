@@ -59,7 +59,7 @@ CREATE TABLE IF NOT EXISTS votes (
   owner_id INTEGER REFERENCES userprofiles (id) ON DELETE CASCADE,
   thread_id  INTEGER REFERENCES threads (id) ON DELETE CASCADE,
   vote INTEGER DEFAULT 0
---   CONSTRAINT one_owner_thread_pair UNIQUE (owner_id, thread_id)
+  CONSTRAINT one_owner_thread_pair UNIQUE (owner_id, thread_id)
 );
 
 --------------------- TRIGGER FOR UPDATE forums ------------------------
@@ -116,20 +116,6 @@ DROP TRIGGER IF EXISTS insert_posts_trigger ON posts;
 CREATE TRIGGER insert_posts_trigger AFTER INSERT ON posts
   FOR EACH ROW EXECUTE PROCEDURE insert_posts_func();
 
--- -------------------------------------------------------------------
--- CREATE OR REPLACE FUNCTION create_or_update_vote(u_id integer, t_id integer, v integer)
---   RETURNS VOID as '
---   DECLARE
---     flag integer;
---   BEGIN
---     select 1 from tb2 where a = u_id and b = t_id into flag;
---     IF flag = 1 THEN
---       UPDATE tb2 SET c = v WHERE a = u_id and b = t_id;
---     ELSE
---       INSERT into tb2(a, b, c) VALUES(u_id, t_id, v);
---     END IF;
---   END;'
--- LANGUAGE plpgsql;
 
 ---------------------- vote -----------------------------------------
 CREATE OR REPLACE FUNCTION create_or_update_vote(u_id integer, t_id integer, v integer)
@@ -147,12 +133,4 @@ CREATE OR REPLACE FUNCTION create_or_update_vote(u_id integer, t_id integer, v i
     RETURN 1;
    END;'
 LANGUAGE plpgsql;
--- CREATE PROCEDURE fill_created_forum();
---
--- CREATE PROCEDURE fill_r
---
--- CREATE PROCEDURE fill_inserted_post();
---
--- CREATE TRIGGER
-
 
