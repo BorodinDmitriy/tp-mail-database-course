@@ -65,8 +65,8 @@ CREATE TABLE IF NOT EXISTS forums_and_users (
 CREATE TABLE IF NOT EXISTS votes (
   owner_id INTEGER REFERENCES userprofiles (id) ON DELETE CASCADE,
   thread_id  INTEGER REFERENCES threads (id) ON DELETE CASCADE,
-  vote INTEGER DEFAULT 0
---   CONSTRAINT one_owner_thread_pair UNIQUE (owner_id, thread_id)
+  vote INTEGER DEFAULT 0,
+  CONSTRAINT owner_per_thread UNIQUE (owner_id, thread_id)
 );
 
 
