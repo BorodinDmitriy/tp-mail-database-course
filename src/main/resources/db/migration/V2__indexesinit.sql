@@ -1,3 +1,17 @@
+DROP INDEX IF EXISTS userprofiles_nickname_idx;
+DROP INDEX IF EXISTS forums_slug_idx;
+DROP INDEX IF EXISTS forums_owners_idx;
+DROP INDEX IF EXISTS threads_users_idx;
+DROP INDEX IF EXISTS threads_forums_idx;
+DROP INDEX IF EXISTS posts_threads_idx;
+DROP INDEX IF EXISTS posts_roots_idx;
+DROP INDEX IF EXISTS posts_threads_by_id_multiple_idx;
+DROP INDEX IF EXISTS posts_threads_by_parent_id_multiple_idx;
+DROP INDEX IF EXISTS forums_and_users_users_idx;
+DROP INDEX IF EXISTS forums_and_users_forums_idx;
+DROP INDEX IF EXISTS votes_threads_idx;
+DROP INDEX IF EXISTS votes_threads_and_users_multiple_idx;
+
 ---------- userprofiles ------------------
 CREATE INDEX IF NOT EXISTS userprofiles_nickname_idx ON userprofiles(nickname);
 
