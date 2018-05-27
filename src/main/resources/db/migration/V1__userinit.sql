@@ -118,20 +118,18 @@ CREATE TRIGGER insert_posts_trigger AFTER INSERT ON posts
 
 
 ---------------------- vote -----------------------------------------
-CREATE OR REPLACE FUNCTION create_or_update_vote(u_id integer, t_id integer, v integer)
-  RETURNS INTEGER as '
-  DECLARE
-    flag integer;
-  BEGIN
-    select 1 from votes where owner_id = u_id and thread_id = t_id into flag;
-    IF flag = 1 THEN
-      UPDATE votes SET vote = v WHERE owner_id = u_id and thread_id = t_id;
-    ELSE
-      INSERT into votes(owner_id, thread_id, vote) VALUES(u_id, t_id, v);
-    END IF;
-    UPDATE threads set votes = (SELECT SUM(vote) FROM votes WHERE thread_id = t_id);
-    RETURN 1;
-   END;'
+CREATE OR REPLACE FUNCTION create_or_update_vote(u_id INTEGER, t_id INTEGER, v INTEGER)
+  RETURNS VOID AS '
+BEGIN
+  INSERT INTO votes (owner_id, thread_id, vote) VALUES (u_id, t_id, v)
+  ON CONFLICT (owner_id, thread_id)
+    DO UPDATE SET vote = v;
+  UPDATE threads
+  SET votes = (SELECT SUM(vote)
+               FROM votes
+               WHERE thread_id = t_id)
+  WHERE id = t_id;
+END;'
 LANGUAGE plpgsql;
 
 
@@ -149,3 +147,18 @@ CREATE INDEX IF NOT EXISTS forum_users_forum_id_idx ON forums_and_users (forum_i
 CREATE INDEX IF NOT EXISTS thread_vote_user ON votes(owner_id, thread_id);
 CREATE INDEX IF NOT EXISTS thread_vote ON votes(thread_id);
 
+
+CREATE INDEX IF NOT EXISTS posts_user_id_idx ON posts (author_id);
+CREATE INDEX IF NOT EXISTS posts_forum_id_idx ON posts (forum_id);
+CREATE INDEX IF NOT EXISTS posts_path_idx ON posts (path_to_post);
+CREATE INDEX IF NOT EXISTS posts_path_thread_id_idx ON posts (thread_id, path_to_post);
+
+
+CREATE INDEX IF NOT EXISTS threads_slug_idx ON threads(slug);
+
+CREATE INDEX IF NOT EXISTS users_id_idx ON userprofiles(id);
+CREATE INDEX IF NOT EXISTS post_root_id_path_idx ON posts(id_of_root, path_to_post);
+CREATE INDEX IF NOT EXISTS post_thread_parent_id_idx ON posts(thread_id, parent_id, id);
+CREATE INDEX IF NOT EXISTS threads_created_idx ON threads(created);
+
+CREATE INDEX IF NOT EXISTS threads_id_idx ON threads(id);
