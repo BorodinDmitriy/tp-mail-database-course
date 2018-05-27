@@ -1,0 +1,24 @@
+---------- userprofiles ------------------
+CREATE INDEX IF NOT EXISTS userprofiles_nickname_idx ON userprofiles(nickname);
+
+---------- forums ------------------------
+CREATE INDEX IF NOT EXISTS forums_slug_idx ON forums(slug);
+CREATE INDEX IF NOT EXISTS forums_owners_idx ON forums(owner_id);
+
+---------- threads -----------------------
+CREATE INDEX IF NOT EXISTS threads_users_idx ON threads(author_id);
+CREATE INDEX IF NOT EXISTS threads_forums_idx ON threads(forum_id);
+
+---------- posts -------------------------
+CREATE INDEX IF NOT EXISTS posts_threads_idx ON posts(thread_id);
+CREATE INDEX IF NOT EXISTS posts_roots_idx ON posts(id_of_root);
+CREATE INDEX IF NOT EXISTS posts_threads_by_id_multiple_idx ON posts(thread_id, id);
+CREATE INDEX IF NOT EXISTS posts_threads_by_parent_id_multiple_idx ON posts(thread_id, parent_id);
+
+---------- forums_and_users --------------
+CREATE INDEX IF NOT EXISTS forums_and_users_users_idx ON forums_and_users(user_id);
+CREATE INDEX IF NOT EXISTS forums_and_users_forums_idx ON forums_and_users(forum_id);
+
+---------- votes -------------------------
+CREATE INDEX IF NOT EXISTS votes_threads_idx ON votes(thread_id);
+CREATE INDEX IF NOT EXISTS votes_threads_and_users_multiple_idx ON votes(owner_id, thread_id);
