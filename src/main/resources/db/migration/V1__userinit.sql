@@ -134,3 +134,18 @@ CREATE OR REPLACE FUNCTION create_or_update_vote(u_id integer, t_id integer, v i
    END;'
 LANGUAGE plpgsql;
 
+
+CREATE INDEX IF NOT EXISTS user_name_idx ON userprofiles USING hash (nickname);
+CREATE INDEX IF NOT EXISTS forums_slug_idx ON forums(slug);
+CREATE INDEX IF NOT EXISTS forums_userprofiles_for_id_idx ON forums (owner_id);
+CREATE INDEX IF NOT EXISTS threads_user_id_idx ON threads (author_id);
+CREATE INDEX IF NOT EXISTS threads_forum_id_idx ON threads (forum_id);
+CREATE INDEX IF NOT EXISTS post_thread ON posts(thread_id);
+CREATE INDEX IF NOT EXISTS post_thread_post ON posts(thread_id, id);
+CREATE INDEX IF NOT EXISTS post_root ON posts(id_of_root);
+CREATE INDEX IF NOT EXISTS posts_multi_idx ON posts (thread_id, parent_id);
+CREATE INDEX IF NOT EXISTS forum_users_user_id_idx ON forums_and_users (user_id);
+CREATE INDEX IF NOT EXISTS forum_users_forum_id_idx ON forums_and_users (forum_id);
+CREATE INDEX IF NOT EXISTS thread_vote_user ON votes(owner_id, thread_id);
+CREATE INDEX IF NOT EXISTS thread_vote ON votes(thread_id);
+
