@@ -132,16 +132,71 @@ BEGIN
 END;'
 LANGUAGE plpgsql;
 
+/*static private String findThread() {
+        return "SELECT author_name, created, forum_slug, id, message, slug, title, votes FROM threads";
+//                "FROM threads thread JOIN userprofiles _user ON (thread.author_id = _user.id)" +
+//                "  JOIN forums forum ON (thread.forum_id = forum.id) ";
+    }
 
+    public static String findThreadIdBySlug() {
+        return "SELECT id FROM threads WHERE slug = ?::CITEXT";
+    }
+
+    static public String findThreadById() {
+        return findThread() + "  WHERE id = ?";
+    }
+
+    static public String findForum() {
+        return "SELECT forum_id FROM threads WHERE id = ?";
+    }
+
+    static public String oldfindThreadById() {
+        return findThread() + "  WHERE thread.id = ?";
+    }
+
+
+    static public String findThreadBySlug() {
+        return findThread() + "  WHERE slug = ?::CITEXT";
+    }
+
+    static public String oldfindThreadBySlug() {
+        return findThread() + "  WHERE thread.slug = ?::CITEXT";
+    }
+
+    static public String updatePostCount() {
+        return "UPDATE forums SET posts = posts + ? WHERE forums.id = ?";
+    }
+
+    static public String createOrUpdateVote() {return "select create_or_update_vote(?, ?, ?)";}
+    static public String insertVote() {return "INSERT INTO votes (owner_id, thread_id, vote) VALUES(?,?,?)";}
+    static public String updateVote() {return "UPDATE votes SET vote = ? WHERE owner_id =? AND thread_id = ?";}
+    static public String getVoteSum() {return "SELECT SUM(vote) FROM votes WHERE thread_id = ?";}
+    static public String updateVotes() {return "UPDATE threads SET votes = ? WHERE id = ?";}*/
 CREATE INDEX IF NOT EXISTS user_name_idx ON userprofiles USING hash (nickname);
+
+CREATE INDEX IF NOT EXISTS forums_idx ON forums(id);
 CREATE INDEX IF NOT EXISTS forums_slug_idx ON forums(slug);
 CREATE INDEX IF NOT EXISTS forums_userprofiles_for_id_idx ON forums (owner_id);
+
+CREATE INDEX IF NOT EXISTS threads_created_idx ON threads(created);
+CREATE INDEX IF NOT EXISTS threads_id_idx ON threads(id);
 CREATE INDEX IF NOT EXISTS threads_user_id_idx ON threads (author_id);
 CREATE INDEX IF NOT EXISTS threads_forum_id_idx ON threads (forum_id);
+CREATE INDEX IF NOT EXISTS threads_slug_idx ON threads(slug);
+CREATE INDEX IF NOT EXISTS threads_forum_slug_idx ON threads(forum_slug);
+CREATE INDEX IF NOT EXISTS threads_message_idx ON threads(message);
+CREATE INDEX IF NOT EXISTS threads_title_idx ON threads(title);
+CREATE INDEX IF NOT EXISTS threads_votes_idx ON threads(votes);
+
+CREATE INDEX IF NOT EXISTS threads_id_slug_idx ON threads USING btree(id,slug);
+CREATE INDEX IF NOT EXISTS threads_forum_id_id_idx ON threads USING btree(forum_id,id);
+CREATE INDEX IF NOT EXISTS threads_mult_idx ON threads USING btree ( author_name, created, forum_slug, id, message, slug, title, votes);
+
 CREATE INDEX IF NOT EXISTS post_thread ON posts(thread_id);
 CREATE INDEX IF NOT EXISTS post_thread_post ON posts(thread_id, id);
 CREATE INDEX IF NOT EXISTS post_root ON posts(id_of_root);
 CREATE INDEX IF NOT EXISTS posts_multi_idx ON posts (thread_id, parent_id);
+
 CREATE INDEX IF NOT EXISTS forum_users_user_id_idx ON forums_and_users (user_id);
 CREATE INDEX IF NOT EXISTS forum_users_forum_id_idx ON forums_and_users (forum_id);
 CREATE INDEX IF NOT EXISTS thread_vote_user ON votes(owner_id, thread_id);
@@ -154,11 +209,7 @@ CREATE INDEX IF NOT EXISTS posts_path_idx ON posts (path_to_post);
 CREATE INDEX IF NOT EXISTS posts_path_thread_id_idx ON posts (thread_id, path_to_post);
 
 
-CREATE INDEX IF NOT EXISTS threads_slug_idx ON threads(slug);
 
 CREATE INDEX IF NOT EXISTS users_id_idx ON userprofiles(id);
 CREATE INDEX IF NOT EXISTS post_root_id_path_idx ON posts(id_of_root, path_to_post);
 CREATE INDEX IF NOT EXISTS post_thread_parent_id_idx ON posts(thread_id, parent_id, id);
-CREATE INDEX IF NOT EXISTS threads_created_idx ON threads(created);
-
-CREATE INDEX IF NOT EXISTS threads_id_idx ON threads(id);
