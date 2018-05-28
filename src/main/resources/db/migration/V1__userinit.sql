@@ -172,44 +172,66 @@ LANGUAGE plpgsql;
     static public String updateVote() {return "UPDATE votes SET vote = ? WHERE owner_id =? AND thread_id = ?";}
     static public String getVoteSum() {return "SELECT SUM(vote) FROM votes WHERE thread_id = ?";}
     static public String updateVotes() {return "UPDATE threads SET votes = ? WHERE id = ?";}*/
-CREATE INDEX IF NOT EXISTS user_name_idx ON userprofiles USING hash (nickname);
 
-CREATE INDEX IF NOT EXISTS forums_idx ON forums(id);
-CREATE INDEX IF NOT EXISTS forums_slug_idx ON forums(slug);
+
+create index if not exists user_name_idx on userprofiles USING hash (nickname);
+
+create index if not exists forums_slug_idx on forums(slug);
 CREATE INDEX IF NOT EXISTS forums_userprofiles_for_id_idx ON forums (owner_id);
 
-CREATE INDEX IF NOT EXISTS threads_created_idx ON threads(created);
-CREATE INDEX IF NOT EXISTS threads_id_idx ON threads(id);
 CREATE INDEX IF NOT EXISTS threads_user_id_idx ON threads (author_id);
 CREATE INDEX IF NOT EXISTS threads_forum_id_idx ON threads (forum_id);
-CREATE INDEX IF NOT EXISTS threads_slug_idx ON threads(slug);
-CREATE INDEX IF NOT EXISTS threads_forum_slug_idx ON threads(forum_slug);
-CREATE INDEX IF NOT EXISTS threads_message_idx ON threads(message);
-CREATE INDEX IF NOT EXISTS threads_title_idx ON threads(title);
-CREATE INDEX IF NOT EXISTS threads_votes_idx ON threads(votes);
 
-CREATE INDEX IF NOT EXISTS threads_id_slug_idx ON threads USING btree(id,slug);
-CREATE INDEX IF NOT EXISTS threads_forum_id_id_idx ON threads USING btree(forum_id,id);
-CREATE INDEX IF NOT EXISTS threads_mult_idx ON threads USING btree ( author_name, created, forum_slug, id, message, slug, title, votes);
-
-CREATE INDEX IF NOT EXISTS post_thread ON posts(thread_id);
-CREATE INDEX IF NOT EXISTS post_thread_post ON posts(thread_id, id);
-CREATE INDEX IF NOT EXISTS post_root ON posts(id_of_root);
+create index if not exists post_thread on posts(thread_id);
+create index if not exists post_thread_post on posts(thread_id, id);
+create index if not exists post_root ON posts(id_of_root);
 CREATE INDEX IF NOT EXISTS posts_multi_idx ON posts (thread_id, parent_id);
 
 CREATE INDEX IF NOT EXISTS forum_users_user_id_idx ON forums_and_users (user_id);
 CREATE INDEX IF NOT EXISTS forum_users_forum_id_idx ON forums_and_users (forum_id);
-CREATE INDEX IF NOT EXISTS thread_vote_user ON votes(owner_id, thread_id);
-CREATE INDEX IF NOT EXISTS thread_vote ON votes(thread_id);
+
+create index if not exists thread_vote_user on votes(owner_id, thread_id);
+create index if not exists thread_vote on votes(thread_id);
 
 
-CREATE INDEX IF NOT EXISTS posts_user_id_idx ON posts (author_id);
-CREATE INDEX IF NOT EXISTS posts_forum_id_idx ON posts (forum_id);
-CREATE INDEX IF NOT EXISTS posts_path_idx ON posts (path_to_post);
-CREATE INDEX IF NOT EXISTS posts_path_thread_id_idx ON posts (thread_id, path_to_post);
-
-
-
-CREATE INDEX IF NOT EXISTS users_id_idx ON userprofiles(id);
-CREATE INDEX IF NOT EXISTS post_root_id_path_idx ON posts(id_of_root, path_to_post);
-CREATE INDEX IF NOT EXISTS post_thread_parent_id_idx ON posts(thread_id, parent_id, id);
+-- CREATE INDEX IF NOT EXISTS user_name_idx ON userprofiles USING hash (nickname);
+--
+-- CREATE INDEX IF NOT EXISTS forums_idx ON forums(id);
+-- CREATE INDEX IF NOT EXISTS forums_slug_idx ON forums(slug);
+-- CREATE INDEX IF NOT EXISTS forums_userprofiles_for_id_idx ON forums (owner_id);
+--
+-- CREATE INDEX IF NOT EXISTS threads_created_idx ON threads(created);
+-- CREATE INDEX IF NOT EXISTS threads_id_idx ON threads(id);
+-- CREATE INDEX IF NOT EXISTS threads_user_id_idx ON threads (author_id);
+-- CREATE INDEX IF NOT EXISTS threads_forum_id_idx ON threads (forum_id);
+-- CREATE INDEX IF NOT EXISTS threads_slug_idx ON threads(slug);
+-- CREATE INDEX IF NOT EXISTS threads_forum_slug_idx ON threads(forum_slug);
+-- CREATE INDEX IF NOT EXISTS threads_message_idx ON threads(message);
+-- CREATE INDEX IF NOT EXISTS threads_title_idx ON threads(title);
+-- CREATE INDEX IF NOT EXISTS threads_votes_idx ON threads(votes);
+--
+-- CREATE INDEX IF NOT EXISTS threads_id_slug_idx ON threads USING btree(id,slug);
+-- CREATE INDEX IF NOT EXISTS threads_forum_id_id_idx ON threads USING btree(forum_id,id);
+-- CREATE INDEX IF NOT EXISTS threads_mult_idx ON threads USING btree ( author_name, created, forum_slug, id, message, slug, title, votes);
+--
+-- CREATE INDEX IF NOT EXISTS post_thread ON posts(thread_id);
+-- CREATE INDEX IF NOT EXISTS post_thread_post ON posts(thread_id, id);
+-- CREATE INDEX IF NOT EXISTS post_root ON posts(id_of_root);
+-- CREATE INDEX IF NOT EXISTS posts_multi_idx ON posts (thread_id, parent_id);
+--
+-- CREATE INDEX IF NOT EXISTS forum_users_user_id_idx ON forums_and_users (user_id);
+-- CREATE INDEX IF NOT EXISTS forum_users_forum_id_idx ON forums_and_users (forum_id);
+-- CREATE INDEX IF NOT EXISTS thread_vote_user ON votes(owner_id, thread_id);
+-- CREATE INDEX IF NOT EXISTS thread_vote ON votes(thread_id);
+--
+--
+-- CREATE INDEX IF NOT EXISTS posts_user_id_idx ON posts (author_id);
+-- CREATE INDEX IF NOT EXISTS posts_forum_id_idx ON posts (forum_id);
+-- CREATE INDEX IF NOT EXISTS posts_path_idx ON posts (path_to_post);
+-- CREATE INDEX IF NOT EXISTS posts_path_thread_id_idx ON posts (thread_id, path_to_post);
+--
+--
+--
+-- CREATE INDEX IF NOT EXISTS users_id_idx ON userprofiles(id);
+-- CREATE INDEX IF NOT EXISTS post_root_id_path_idx ON posts(id_of_root, path_to_post);
+-- CREATE INDEX IF NOT EXISTS post_thread_parent_id_idx ON posts(thread_id, parent_id, id);
