@@ -144,15 +144,15 @@ CREATE INDEX IF NOT EXISTS threads_forum_id_idx ON threads(forum_id);
 CREATE INDEX IF NOT EXISTS threads_created_forum_id_idx ON threads(created,forum_id);
 
 -- CREATE INDEX IF NOT EXISTS posts_id_idx ON posts(id);
-CREATE INDEX IF NOT EXISTS posts_author_id_idx ON posts(author_id);
+--CREATE INDEX IF NOT EXISTS posts_author_id_idx ON posts(author_id);
 CREATE INDEX IF NOT EXISTS posts_thread_id_idx ON posts(thread_id);
 CREATE INDEX IF NOT EXISTS posts_forum_id_idx ON posts(forum_id);
 CREATE INDEX IF NOT EXISTS posts_id_of_root_idx ON posts(id_of_root);
 CREATE INDEX IF NOT EXISTS posts_thread_id_path_to_post_idx ON posts(thread_id, path_to_post);
-CREATE INDEX IF NOT EXISTS posts_thread_id_parent_id_idx ON posts(thread_id, parent_id);--#
+--CREATE INDEX IF NOT EXISTS posts_thread_id_parent_id_idx ON posts(thread_id, parent_id);--#
 CREATE INDEX IF NOT EXISTS posts_id_of_root_thread_id_parent_id_idx ON posts(id_of_root, thread_id, parent_id);
 CREATE INDEX IF NOT EXISTS posts_thread_id_id_idx ON posts(thread_id,id);
-CREATE INDEX IF NOT EXISTS posts_created_id_idx ON posts(created,id);--#
+--CREATE INDEX IF NOT EXISTS posts_created_id_idx ON posts(created,id);--#
 CREATE INDEX IF NOT EXISTS posts_thread_id_path_to_post_id_idx ON posts(path_to_post,thread_id,id);
 
 CREATE INDEX IF NOT EXISTS votes_thread_id_idx ON votes(thread_id);
@@ -163,7 +163,7 @@ CREATE INDEX IF NOT EXISTS forum_users_forum_id_idx ON forums_and_users (forum_i
 
 --CREATE INDEX IF NOT EXISTS posts_path_to_post_idx ON posts(path_to_post);
 --CREATE INDEX IF NOT EXISTS posts_id_of_root_path_to_post_idx ON posts(id_of_root, path_to_post);
---CREATE INDEX IF NOT EXISTS posts_thread_id_parent_id_id_idx ON posts(thread_id,parent_id, id);
+CREATE INDEX IF NOT EXISTS posts_thread_id_parent_id_id_idx ON posts(thread_id,parent_id, id);
 --CREATE INDEX IF NOT EXISTS posts_id_idx ON posts(id);
 --CREATE INDEX IF NOT EXISTS threads_id_idx ON threads(id);
 --CREATE INDEX IF NOT EXISTS userprofiles_id_idx ON userprofiles(id);
