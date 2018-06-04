@@ -31,9 +31,11 @@ public class QueryForForums {
 
     // OR subquery
     static public String findUsers() {
-               return "SELECT DISTINCT _user.id, _user.nickname, _user.about, _user.fullname, _user.email " +
+        return "SELECT _user.about, _user.email, _user.fullname, _user.nickname " +
+        " FROM userprofiles _user WHERE _user.id IN ( SELECT user_id FROM forums_and_users WHERE forum_id = ?)";
+              /* return "SELECT DISTINCT _user.id, _user.nickname, _user.about, _user.fullname, _user.email " +
                 "FROM forums_and_users forums_and_user JOIN userprofiles _user ON (forums_and_user.user_id = _user.id)" +
-                "WHERE forums_and_user.forum_id=?";
+                "WHERE forums_and_user.forum_id=?";*/
     }
 
     static public String addUser() {

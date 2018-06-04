@@ -56,7 +56,17 @@ public class PostDAO extends AbstractDAO {
     }
 
     public List<PostModel> findSorted(ThreadModel threadModel, Integer limit, Integer since, String sort, Boolean desc) {
-        String SQL="SELECT * FROM \"posts\" WHERE thread_id=? ";
+        if (sort == null)
+            sort = "flat";
+        switch (sort) {
+            case "tree":
+                return findSortedTree(threadModel.getId(), limit, since, desc);
+            case "parent_tree":
+                return findSortedParentTree(threadModel.getId(), limit, since, desc);
+            default:
+                return findSortedFlat(threadModel.getId(), limit, since, desc);
+        }
+        /* String SQL="SELECT * FROM \"posts\" WHERE thread_id=? ";
         List<Object> lst= new LinkedList<>();
         lst.add(threadModel.getId());
 
@@ -170,96 +180,112 @@ public class PostDAO extends AbstractDAO {
 
         SQL+=";";
         return jdbcTemplate.query(SQL,_getPostModel,lst.toArray());
-        /*ArrayList<Object> params = new ArrayList<>();
+*/
+    }
 
-        if (sort != null && sort.equals("flat")) {
-            String sql = "SELECT * FROM posts WHERE thread_id=? ";
-            params.add(threadModel.getId());
-            if (since != null) {
-                if (desc) {
-                    sql += "AND id < ?";
-                } else {
-                    sql += "AND id > ?";
-                }
-                params.add(since);
-            }
+    public List<PostModel> findSortedFlat(Integer thread_id, Integer limit, Integer since, Boolean desc) {
+        final StringBuilder SQL = new StringBuilder();
+        final ArrayList<Object> lst = new ArrayList<>();
+        SQL.append("SELECT p.author_name, p.created, f.slug, p.forum_slug, p.id, p.is_edited, p.message, p.parent_id, p.thread_id " +
+                " FROM posts p JOIN forums f on p.forum_id = f.id WHERE thread_id = ? ");
+        lst.add(thread_id);
 
-            sql += "ORDER BY created ";
+        if (since != null) {
+            SQL.append(" AND p.id " );
 
-            if (desc != null && desc) {
-                sql += "DESC, id DESC ";
+            if (desc != null && desc.equals(Boolean.TRUE)) {
+                SQL.append(" < ? ");
             } else {
-                sql += ", id ";
+                SQL.append(" > ? ");
             }
 
-            if (limit != null) {
-                sql += "LIMIT ?";
-                params.add(limit);
-            }
+            lst.add(since);
+        }
 
-            return jdbcTemplate.query(sql, _getPostModel, params.toArray());
-        } else if (sort != null && sort.equals("tree")) {
-            String sql = "SELECT * FROM posts WHERE thread_id=? ";
-            params.add(threadModel.getId());
+        SQL.append(" ORDER BY (p.id) ");
+        if (desc != null && desc.equals(Boolean.TRUE)) {
+            SQL.append(" DESC ");
+        }
 
-            if (since != null) {
-                if (desc) {
-                    sql += " AND path_to_post < (SELECT path_to_post FROM posts WHERE id=?) ";
-                } else {
-                    sql += " AND path_to_post > (SELECT path_to_post FROM posts WHERE id=?) ";
-                }
-                params.add(since);
-            }
+        if (limit != null) {
+            SQL.append(" LIMIT ? ");
+            lst.add(limit);
+        }
 
-            sql += "ORDER BY path_to_post ";
+        return jdbcTemplate.query(SQL.toString(), _getPostModel, lst.toArray());
+    }
 
-            if (desc != null && desc) {
-                sql += "DESC, id DESC ";
-            }
+    public List<PostModel> findSortedTree(Integer thread_id, Integer limit, Integer since, Boolean desc) {
+        final StringBuilder SQL = new StringBuilder();
+        final ArrayList<Object> lst = new ArrayList<>();
+        SQL.append("SELECT p.author_name, p.created, f.slug, p.forum_slug, p.id, p.is_edited, p.message, p.parent_id, p.thread_id " +
+                " FROM posts p JOIN forums f on p.forum_id = f.id WHERE thread_id = ? ");
+        lst.add(thread_id);
 
-            if (limit != null) {
-                sql += "LIMIT ?;";
-                params.add(limit);
-            }
+        if (since != null) {
+            SQL.append(" AND p.path_to_post " );
 
-            return jdbcTemplate.query(sql, _getPostModel, params.toArray());
-        } else {
-            String sql = "SELECT * FROM posts JOIN ";
-            if (since != null) {
-                if (desc != null && desc) {
-                    if (limit != null) {
-                        sql += "  (SELECT id FROM posts WHERE parent_id = 0 AND thread_id = ? AND path_to_post[1] < (SELECT path_to_post[1] FROM posts WHERE id = ?) ORDER BY path_to_post DESC, thread_id DESC LIMIT ?) AS selected ON (thread_id = ? AND selected.id = path_to_post[1]) ORDER BY path_to_post[1] DESC, path_to_post";
-                    }
-                } else {
-                    if (limit != null) {
-                        sql += "  (SELECT id FROM posts WHERE parent_id = 0 AND thread_id = ? AND path_to_post > (SELECT path_to_post FROM posts WHERE id = ?) ORDER BY id LIMIT ?) AS selected ON (thread_id = ? AND selected.id = path_to_post[1]) ORDER BY path_to_post";
-                    }
-                }
-                params.add(threadModel.getId());
-                params.add(since);
-                params.add(limit);
-                params.add(threadModel.getId());
-            } else if (limit != null) {
-                if (desc != null && desc) {
-                    sql += " (SELECT id FROM posts WHERE parent_id = 0 AND thread_id = ? ORDER BY path_to_post desc LIMIT ? ) AS selected ON (selected.id = path_to_post[1] AND thread_id = ?) ORDER BY path_to_post[1] DESC, path_to_post";
-                } else {
-                    sql += " (SELECT id FROM posts WHERE parent_id = 0 AND thread_id = ? ORDER BY id LIMIT ? ) AS selected ON (thread_id = ? AND selected.id = path_to_post[1]) ORDER BY path_to_post";
-                }
-                params.add(threadModel.getId());
-                params.add(limit);
-                params.add(threadModel.getId());
+            if (desc != null && desc.equals(Boolean.TRUE)) {
+                SQL.append(" < ");
             } else {
-                if (desc != null && desc) {
-                    sql += " (SELECT id FROM posts WHERE parent_id = 0 AND thread_id = ? ORDER BY path_to_post desc ) AS selected ON (selected.id = path_to_post[1] AND thread_id = ?) ORDER BY path_to_post[1] DESC, path_to_post";
-                } else {
-                    sql += " (SELECT id FROM posts WHERE parent_id = 0 AND thread_id = ? ORDER BY id) AS selected ON (thread_id = ? AND selected.id = path_to_post[1]) ORDER BY path_to_post";
-                }
-                params.add(threadModel.getId());
-                params.add(limit);
-                params.add(threadModel.getId());
+                SQL.append(" > ");
             }
-            return jdbcTemplate.query(sql, params.toArray(), _getPostModel);
-        }*/
+
+            SQL.append(" (SELECT path_to_post from posts WHERE id = ?) ");
+            lst.add(since);
+        }
+
+        SQL.append(" ORDER BY p.path_to_post ");
+        if (desc != null && desc.equals(Boolean.TRUE)) {
+            SQL.append(" DESC ");
+        }
+
+        if (limit != null) {
+            SQL.append(" LIMIT ? ");
+            lst.add(limit);
+        }
+
+        return jdbcTemplate.query(SQL.toString(), _getPostModel, lst.toArray());
+    }
+
+    public List<PostModel> findSortedParentTree(Integer thread_id, Integer limit, Integer since, Boolean desc) {
+        final StringBuilder SQL = new StringBuilder();
+        final ArrayList<Object> lst = new ArrayList<>();
+        SQL.append("SELECT p.author_name, p.created, f.slug, p.forum_slug, p.id, p.is_edited, p.message, p.parent_id, p.thread_id " +
+                " FROM posts p JOIN forums f on p.forum_id = f.id " +
+                " WHERE p.id_of_root IN ( SELECT id FROM posts WHERE thread_id = ? AND parent_id = 0 ");
+        lst.add(thread_id);
+
+        if (since != null) {
+            SQL.append(" AND id " );
+
+            if (desc != null && desc.equals(Boolean.TRUE)) {
+                SQL.append(" < ");
+            } else {
+                SQL.append(" > ");
+            }
+
+            SQL.append(" (SELECT id_of_root from posts WHERE id = ?) ");
+            lst.add(since);
+        }
+
+        SQL.append(" ORDER BY id ");
+        if (desc != null && desc.equals(Boolean.TRUE)) {
+            SQL.append(" DESC ");
+        }
+
+        if (limit != null) {
+            SQL.append(" LIMIT ? ");
+            lst.add(limit);
+        }
+
+        SQL.append(" ) ORDER BY ");
+        if (desc != null && desc.equals(Boolean.TRUE)) {
+            SQL.append(" p.id_of_root DESC, ");
+        }
+        SQL.append(" p.path_to_post ");
+
+        return jdbcTemplate.query(SQL.toString(), _getPostModel, lst.toArray());
     }
 
     public void createByThreadIdOrSlug(List<PostModel> postModelList, ThreadModel threadModel) throws DataAccessException {

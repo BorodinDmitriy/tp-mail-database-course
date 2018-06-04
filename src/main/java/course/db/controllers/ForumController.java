@@ -9,7 +9,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import javax.xml.ws.Response;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,62 +22,88 @@ public class ForumController extends AbstractController {
     produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AbstractView> createForum(@RequestBody ForumView forumView) {
 
+        long start = System.nanoTime();
         ForumModel forumModel = new ForumModel(forumView);
         StatusManagerRequest status = forumManager.create(forumModel);
+        ResponseEntity m;
         switch(status.getCode()) {
             case OK:
-                return new ResponseEntity<>(forumModel.toView(), null, HttpStatus.CREATED); //
+                m =  new ResponseEntity<>(forumModel.toView(), null, HttpStatus.CREATED);
+                break;
             case NO_RESULT:
-                return new ResponseEntity<>(new ErrorView(status.getMessage()), null, HttpStatus.NOT_FOUND);
+                m = new ResponseEntity<>(new ErrorView(status.getMessage()), null, HttpStatus.NOT_FOUND);
+                break;
             case CONFILICT:
                 ForumModel existingForum = new ForumModel();
                 existingForum.setSlug(forumView.getSlug());
                 StatusManagerRequest status1 = forumManager.findForum(existingForum);
-                if (status1.getCode() == ManagerResponseCodes.DB_ERROR)
-                    return new ResponseEntity<>(new ErrorView(status1.getMessage()), null, HttpStatus.INTERNAL_SERVER_ERROR);
-                return new ResponseEntity<AbstractView>(existingForum.toView(), null, HttpStatus.CONFLICT);
+                if (status1.getCode() == ManagerResponseCodes.DB_ERROR) {
+                    m = new ResponseEntity<>(new ErrorView(status1.getMessage()), null, HttpStatus.INTERNAL_SERVER_ERROR);
+                    break;
+                }
+                m =  new ResponseEntity<AbstractView>(existingForum.toView(), null, HttpStatus.CONFLICT);
+                break;
             default:
-                return new ResponseEntity<>(new ErrorView(status.getMessage()), null, HttpStatus.INTERNAL_SERVER_ERROR);
+                m = new ResponseEntity<>(new ErrorView(status.getMessage()), null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
+        //System.out.println(ServletUriComponentsBuilder.fromCurrentRequestUri().toUriString() + " " + (System.nanoTime() - start));
+        return m;
     }
 
     @RequestMapping(path="/{slug}/details", method= RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AbstractView> getBranchDetails(@PathVariable(value="slug") String slug) {
+        long start = System.nanoTime();
         ForumModel forumModel = new ForumModel();
         forumModel.setSlug(slug);
         StatusManagerRequest status = forumManager.findForum(forumModel);
+        ResponseEntity m;
         switch(status.getCode()) {
             case OK:
-                return new ResponseEntity<>(forumModel.toView(), null, HttpStatus.OK); //
+                m = new ResponseEntity<>(forumModel.toView(), null, HttpStatus.OK); //
+                break;
             case NO_RESULT:
-                return new ResponseEntity<>(new ErrorView(status.getMessage()), null, HttpStatus.NOT_FOUND);
+                m = new ResponseEntity<>(new ErrorView(status.getMessage()), null, HttpStatus.NOT_FOUND);
+                break;
             default:
-                return new ResponseEntity<>(new ErrorView(status.getMessage()), null, HttpStatus.INTERNAL_SERVER_ERROR);
+                m = new ResponseEntity<>(new ErrorView(status.getMessage()), null, HttpStatus.INTERNAL_SERVER_ERROR);
+                break;
         }
+        //System.out.println(ServletUriComponentsBuilder.fromCurrentRequestUri().toUriString() + " " + (double)(System.nanoTime() - start) / 1000000000.0);
+        return m;
     }
 
     @RequestMapping(path="/{slug}/create", method= RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AbstractView> createBranch(@PathVariable(value="slug") String slug, @RequestBody ThreadView threadView) {
 
+        long start = System.nanoTime();
+        ResponseEntity m;
         threadView.setForum(slug);
         ThreadModel threadModel = new ThreadModel(threadView);
         StatusManagerRequest status = threadManager.createThread(threadModel);
         switch(status.getCode()) {
             case OK:
-                return new ResponseEntity<>(threadModel.toView(), null, HttpStatus.CREATED); //
+                m =  new ResponseEntity<>(threadModel.toView(), null, HttpStatus.CREATED);
+                break;
             case NO_RESULT:
-                return new ResponseEntity<>(new ErrorView(status.getMessage()), null, HttpStatus.NOT_FOUND);
+                m = new ResponseEntity<>(new ErrorView(status.getMessage()), null, HttpStatus.NOT_FOUND);
+                break;
             case CONFILICT:
                 ThreadModel existingThread = new ThreadModel();
                 existingThread.setSlug(threadView.getSlug());
                 StatusManagerRequest status1 = threadManager.findThreadBySlug(existingThread);
-                if (status1.getCode() == ManagerResponseCodes.DB_ERROR)
-                    return new ResponseEntity<>(new ErrorView(status1.getMessage()), null, HttpStatus.INTERNAL_SERVER_ERROR);
-                return new ResponseEntity<>(existingThread.toView(), null, HttpStatus.CONFLICT);
+                if (status1.getCode() == ManagerResponseCodes.DB_ERROR) {
+                    m = new ResponseEntity<>(new ErrorView(status1.getMessage()), null, HttpStatus.INTERNAL_SERVER_ERROR);
+                    break;
+                }
+
+                m = new ResponseEntity<>(existingThread.toView(), null, HttpStatus.CONFLICT);
+                break;
             default:
-                return new ResponseEntity<>(new ErrorView(status.getMessage()), null, HttpStatus.INTERNAL_SERVER_ERROR);
+                m = new ResponseEntity<>(new ErrorView(status.getMessage()), null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
+       // System.out.println(ServletUriComponentsBuilder.fromCurrentRequestUri().toUriString() + " " + (double)(System.nanoTime() - start) / 1000000000.0);
+        return m;
     }
 
     @RequestMapping(path="/{slug}/threads", method= RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -84,6 +112,8 @@ public class ForumController extends AbstractController {
                                                  @RequestParam(value="since",required = false) String since,
                                                  @RequestParam(value="desc",required = false) Boolean desc
                                                  ) {
+        long start = System.nanoTime();
+        ResponseEntity m;
         ForumModel forumModel = new ForumModel();
         forumModel.setSlug(slug);
 
@@ -92,14 +122,19 @@ public class ForumController extends AbstractController {
         switch (status1.getCode()) {
 //            cake OK:
             case NO_RESULT:
-                return new ResponseEntity<>(new ErrorView(status1.getMessage()), null, HttpStatus.NOT_FOUND);
+                m = new ResponseEntity<>(new ErrorView(status1.getMessage()), null, HttpStatus.NOT_FOUND);
+                //System.out.println(ServletUriComponentsBuilder.fromCurrentRequestUri().toUriString() + " " + (double)(System.nanoTime() - start) / 1000000000.0);
+                return m;
             case DB_ERROR:
-                return new ResponseEntity<>(new ErrorView(status1.getMessage()), null, HttpStatus.INTERNAL_SERVER_ERROR);
+                m = new ResponseEntity<>(new ErrorView(status1.getMessage()), null, HttpStatus.INTERNAL_SERVER_ERROR);
+               // System.out.println(ServletUriComponentsBuilder.fromCurrentRequestUri().toUriString() + " " + (double)(System.nanoTime() - start) / 1000000000.0);
+                return m;
             default:
                 break;
         }
-        return new ResponseEntity<>(threadViewList, null, HttpStatus.OK);
-
+        m = new ResponseEntity<>(threadViewList, null, HttpStatus.OK);
+       // System.out.println(ServletUriComponentsBuilder.fromCurrentRequestUri().toUriString() + " " + (double)(System.nanoTime() - start) / 1000000000.0);
+        return m;
     }
 
     @RequestMapping(path="/{slug}/users", method= RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -108,6 +143,8 @@ public class ForumController extends AbstractController {
                                                    @RequestParam(value="since",required = false) String since,
                                                    @RequestParam(value="desc",required = false) Boolean desc
                                                 ) {
+        long start = System.nanoTime();
+        ResponseEntity m;
         ForumModel forumModel = new ForumModel();
         forumModel.setSlug(slug);
 
@@ -116,12 +153,16 @@ public class ForumController extends AbstractController {
         StatusManagerRequest status = forumManager.findUsers(forumModel, limit, since, desc, userProfileList);
         switch (status.getCode()) {
             case OK:
-                return new ResponseEntity<>(userProfileList, null, HttpStatus.OK);
+                m = new ResponseEntity<>(userProfileList, null, HttpStatus.OK);
+                break;
             case NO_RESULT:
-                return new ResponseEntity<>(new ErrorView(status.getMessage()), null, HttpStatus.NOT_FOUND);
+                m = new ResponseEntity<>(new ErrorView(status.getMessage()), null, HttpStatus.NOT_FOUND);
+                break;
             default:
-                return new ResponseEntity<>(new ErrorView(status.getMessage()), null, HttpStatus.INTERNAL_SERVER_ERROR);
+                m = new ResponseEntity<>(new ErrorView(status.getMessage()), null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
+        //System.out.println(ServletUriComponentsBuilder.fromCurrentRequestUri().toUriString() + " " + (double)(System.nanoTime() - start) / 1000000000.0);
+        return m;
     }
 }
 

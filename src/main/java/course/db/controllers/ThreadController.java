@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,19 +30,27 @@ public class ThreadController extends AbstractController {
         produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> createPosts(@RequestBody ArrayList<PostView> posts,
                                                      @PathVariable(value = "slug_or_id") String slug_or_id) {
+        long start = System.nanoTime();
+        ResponseEntity m;
         final ThreadModel threadModel = new ThreadModel();
         checkAndSetSlugOrId(slug_or_id, threadModel);
 
         StatusManagerRequest status = threadManager.findThreadBySlugOrId(threadModel);
         switch (status.getCode()) {
             case NO_RESULT:
-                return new ResponseEntity<>(new ErrorView(status.getMessage()), null, HttpStatus.NOT_FOUND);
+                m = new ResponseEntity<>(new ErrorView(status.getMessage()), null, HttpStatus.NOT_FOUND);
+               // System.out.println(ServletUriComponentsBuilder.fromCurrentRequestUri().toUriString() + " " + (double)(System.nanoTime() - start) / 1000000000.0);
+                return m;
             case DB_ERROR:
-                return new ResponseEntity<>(new ErrorView(status.getMessage()), null, HttpStatus.INTERNAL_SERVER_ERROR);
+                m = new ResponseEntity<>(new ErrorView(status.getMessage()), null, HttpStatus.INTERNAL_SERVER_ERROR);
+               // System.out.println(ServletUriComponentsBuilder.fromCurrentRequestUri().toUriString() + " " + (double)(System.nanoTime() - start) / 1000000000.0);
+                return m;
         }
 
         if (posts.isEmpty()) {
-            return new ResponseEntity<>(posts, null, HttpStatus.CREATED);
+            m = new ResponseEntity<>(posts, null, HttpStatus.CREATED);
+           // System.out.println(ServletUriComponentsBuilder.fromCurrentRequestUri().toUriString() + " " + (double)(System.nanoTime() - start) / 1000000000.0);
+            return m;
         }
 
         List<PostModel> postModelList = new ArrayList<>();
@@ -53,15 +62,21 @@ public class ThreadController extends AbstractController {
 
                 switch (status1.getCode()) {
                     case NO_RESULT:
-                        return new ResponseEntity<>(new ErrorView(status1.getMessage()), null, HttpStatus.CONFLICT);
+                        m = new ResponseEntity<>(new ErrorView(status1.getMessage()), null, HttpStatus.CONFLICT);
+                       // System.out.println(ServletUriComponentsBuilder.fromCurrentRequestUri().toUriString() + " " + (double)(System.nanoTime() - start) / 1000000000.0);
+                        return m;
                     case DB_ERROR:
-                        return new ResponseEntity<>(new ErrorView(status1.getMessage()), null, HttpStatus.INTERNAL_SERVER_ERROR);
+                        m = new ResponseEntity<>(new ErrorView(status1.getMessage()), null, HttpStatus.INTERNAL_SERVER_ERROR);
+                      //  System.out.println(ServletUriComponentsBuilder.fromCurrentRequestUri().toUriString() + " " + (double)(System.nanoTime() - start) / 1000000000.0);
+                        return m;
                 }
                 post.setForum(threadModel.getForum());
                 post.setThread(threadModel.getId());
 
                 if (!threadModel.getId().equals(prnt.getThread())) {
-                    return new ResponseEntity<>(new ErrorView("not equals id"), null, HttpStatus.CONFLICT);
+                    m = new ResponseEntity<>(new ErrorView("not equals id"), null, HttpStatus.CONFLICT);
+                   // System.out.println(ServletUriComponentsBuilder.fromCurrentRequestUri().toUriString() + " " + (double)(System.nanoTime() - start) / 1000000000.0);
+                    return m;
                 }
             }
             post.setForum(threadModel.getForum());
@@ -73,15 +88,21 @@ public class ThreadController extends AbstractController {
 
         switch (status2.getCode()) {
             case CONFILICT:
-                return new ResponseEntity<>(new ErrorView(status2.getMessage()), null, HttpStatus.CONFLICT);
+                m = new ResponseEntity<>(new ErrorView(status2.getMessage()), null, HttpStatus.CONFLICT);
+              //  System.out.println(ServletUriComponentsBuilder.fromCurrentRequestUri().toUriString() + " " + (double)(System.nanoTime() - start) / 1000000000.0);
+                return m;
             case DB_ERROR:
-                return new ResponseEntity<>(new ErrorView(status2.getMessage()), null, HttpStatus.NOT_FOUND);
+                m = new ResponseEntity<>(new ErrorView(status2.getMessage()), null, HttpStatus.NOT_FOUND);
+              //  System.out.println(ServletUriComponentsBuilder.fromCurrentRequestUri().toUriString() + " " + (double)(System.nanoTime() - start) / 1000000000.0);
+                return m;
         }
         List<PostView> postViews = new ArrayList<>();
         for (PostModel postModel: postModelList) {
             postViews.add(postModel.toView());
         }
-        return new ResponseEntity<>(postViews, null, HttpStatus.CREATED);
+        m = new ResponseEntity<>(postViews, null, HttpStatus.CREATED);
+        //System.out.println(ServletUriComponentsBuilder.fromCurrentRequestUri().toUriString() + " " + (double)(System.nanoTime() - start) / 1000000000.0);
+        return m;
     }
 
 
@@ -89,38 +110,51 @@ public class ThreadController extends AbstractController {
     @RequestMapping(path="/{slug_or_id}/details", method= RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AbstractView> getDetails(@PathVariable(value = "slug_or_id") String slug_or_id) {
 
+        long start = System.nanoTime();
+        ResponseEntity m;
         final ThreadModel threadModel = new ThreadModel();
         checkAndSetSlugOrId(slug_or_id, threadModel);
         StatusManagerRequest status = threadManager.findThreadBySlugOrId(threadModel);
 
         switch (status.getCode()) {
             case OK:
-                return new ResponseEntity<>(threadModel.toView(), null, HttpStatus.OK); //
+                m = new ResponseEntity<>(threadModel.toView(), null, HttpStatus.OK); //
+                break;
             case NO_RESULT:
-                return new ResponseEntity<>(new ErrorView(status.getMessage()), null, HttpStatus.NOT_FOUND); //
+                m = new ResponseEntity<>(new ErrorView(status.getMessage()), null, HttpStatus.NOT_FOUND); //
+                break;
             default:
-                return new ResponseEntity<>(new ErrorView(status.getMessage()), null, HttpStatus.NOT_FOUND); //
+                m = new ResponseEntity<>(new ErrorView(status.getMessage()), null, HttpStatus.NOT_FOUND); //
         }
+        //System.out.println(ServletUriComponentsBuilder.fromCurrentRequestUri().toUriString() + " " + (double)(System.nanoTime() - start) / 1000000000.0);
+        return m;
     }
 
     @RequestMapping(path="/{slug_or_id}/details", method= RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AbstractView> setDetails(@RequestBody ThreadView threadView,
                                                    @PathVariable(value = "slug_or_id") String slug_or_id) {
+        long start = System.nanoTime();
+        ResponseEntity m;
         final ThreadModel threadModel = new ThreadModel(threadView);
         checkAndSetSlugOrId(slug_or_id, threadModel);
 
         StatusManagerRequest status = threadManager.updateThread(threadModel);
         switch (status.getCode()) {
             case OK:
-                return new ResponseEntity<>(threadModel.toView(), null, HttpStatus.OK); //
+                m = new ResponseEntity<>(threadModel.toView(), null, HttpStatus.OK); //
+                break;
             case NO_RESULT:
-                return new ResponseEntity<>(new ErrorView(status.getMessage()), null, HttpStatus.NOT_FOUND); //
+                m = new ResponseEntity<>(new ErrorView(status.getMessage()), null, HttpStatus.NOT_FOUND); //
+                break;
             case CONFILICT:
-                return new ResponseEntity<>(new ErrorView(status.getMessage()), null, HttpStatus.CONFLICT); //
+                m = new ResponseEntity<>(new ErrorView(status.getMessage()), null, HttpStatus.CONFLICT); //
+                break;
             default:
-                return new ResponseEntity<>(new ErrorView(status.getMessage()), null, HttpStatus.INTERNAL_SERVER_ERROR); //
+                m = new ResponseEntity<>(new ErrorView(status.getMessage()), null, HttpStatus.INTERNAL_SERVER_ERROR); //
         }
+       // System.out.println(ServletUriComponentsBuilder.fromCurrentRequestUri().toUriString() + " " + (double)(System.nanoTime() - start) / 1000000000.0);
+        return m;
 
     }
 
@@ -130,15 +164,21 @@ public class ThreadController extends AbstractController {
                                                  @RequestParam(value="since",required = false) Integer since,
                                                  @RequestParam(value="sort",required = false) String sort,
                                                  @RequestParam(value="desc",required = false) Boolean desc) {
+        long start = System.nanoTime();
+        ResponseEntity m;
         ThreadModel threadModel = new  ThreadModel();
         checkAndSetSlugOrId(slug_or_id, threadModel);
         StatusManagerRequest status = threadManager.findThreadBySlugOrId(threadModel);
 
         switch (status.getCode()) {
             case NO_RESULT:
-                return new ResponseEntity<>(new ErrorView(status.getMessage()), null, HttpStatus.NOT_FOUND);
+                m = new ResponseEntity<>(new ErrorView(status.getMessage()), null, HttpStatus.NOT_FOUND);
+               // System.out.println(ServletUriComponentsBuilder.fromCurrentRequestUri().toUriString() + " " + (double)(System.nanoTime() - start) / 1000000000.0);
+                return m;
             case DB_ERROR:
-                return new ResponseEntity<>(new ErrorView(status.getMessage()), null, HttpStatus.INTERNAL_SERVER_ERROR);
+                m = new ResponseEntity<>(new ErrorView(status.getMessage()), null, HttpStatus.INTERNAL_SERVER_ERROR);
+               // System.out.println(ServletUriComponentsBuilder.fromCurrentRequestUri().toUriString() + " " + (double)(System.nanoTime() - start) / 1000000000.0);
+                return m;
         }
 
 
@@ -152,18 +192,25 @@ public class ThreadController extends AbstractController {
                 for (PostModel model : postModels) {
                     postViews.add(model.toView());
                 }
-                return new ResponseEntity<>(postViews, null, HttpStatus.OK); //
+                m = new ResponseEntity<>(postViews, null, HttpStatus.OK); //
+                break;
             case NO_RESULT:
-                return new ResponseEntity<>(new ErrorView(status1.getMessage()), null, HttpStatus.NOT_FOUND); //
+                m = new ResponseEntity<>(new ErrorView(status1.getMessage()), null, HttpStatus.NOT_FOUND); //
+                break;
             default:
-                return new ResponseEntity<>(new ErrorView(status1.getMessage()), null, HttpStatus.INTERNAL_SERVER_ERROR); //
+                m = new ResponseEntity<>(new ErrorView(status1.getMessage()), null, HttpStatus.INTERNAL_SERVER_ERROR); //
+                break;
         }
+       // System.out.println(ServletUriComponentsBuilder.fromCurrentRequestUri().toUriString() + " " + (double)(System.nanoTime() - start) / 1000000000.0);
+        return m;
     }
 
     
     @RequestMapping(path="/{slug_or_id}/vote", method= RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AbstractView> voteThread(@RequestBody VoteView voteView, @PathVariable String slug_or_id) {
+        long start = System.nanoTime();
+        ResponseEntity m;
 
         ThreadModel threadModel = new  ThreadModel();
         checkAndSetSlugOrId(slug_or_id, threadModel);
@@ -171,13 +218,19 @@ public class ThreadController extends AbstractController {
         StatusManagerRequest status = threadManager.setVote(new VoteModel(voteView), threadModel);
         switch (status.getCode()) {
             case OK:
-                return new ResponseEntity<>(threadModel.toView(), null, HttpStatus.OK);
+                m = new ResponseEntity<>(threadModel.toView(), null, HttpStatus.OK);
+                break;
             case NO_RESULT:
-                return new ResponseEntity<>(new ErrorView(status.getMessage()), null, HttpStatus.NOT_FOUND); //
+                m = new ResponseEntity<>(new ErrorView(status.getMessage()), null, HttpStatus.NOT_FOUND); //
+                break;
             case CONFILICT:
-                return new ResponseEntity<>(new ErrorView(status.getMessage()), null, HttpStatus.CONFLICT); //
+                m = new ResponseEntity<>(new ErrorView(status.getMessage()), null, HttpStatus.CONFLICT); //
+                break;
             default:
-                return new ResponseEntity<>(new ErrorView(status.getMessage()), null, HttpStatus.INTERNAL_SERVER_ERROR); //
+                m = new ResponseEntity<>(new ErrorView(status.getMessage()), null, HttpStatus.INTERNAL_SERVER_ERROR); //
+                break;
         }
+        //System.out.println(ServletUriComponentsBuilder.fromCurrentRequestUri().toUriString() + " " + (double)(System.nanoTime() - start) / 1000000000.0);
+        return m;
     }
 }
